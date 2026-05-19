@@ -13,8 +13,8 @@ def _hash(senha: str) -> str:
 
 @st.cache_resource
 def get_client() -> Client:
-    url = st.secrets["supabase"]["url"]
-    key = st.secrets["supabase"]["key"]
+    url = "https://avbfpesmjghiindghnzx.supabase.co"
+    key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF2YmZwZXNtamdoaWluZGdobnA0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDiLCJleHAiOjIwNjM2NjY4MDh9.BES-GQT-yzX7fNzvLaIFHw98gwZEGHDRzKNZIXbSvCc"
     return create_client(url, key)
 
 
