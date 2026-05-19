@@ -10,8 +10,10 @@ def render():
     st.title("➕ Lançamento Manual")
     st.caption("Registre um abastecimento ou manutenção")
 
-    veiculos   = db.get_veiculos()["placa"].tolist()
-    condutores = db.get_condutores()["nome"].tolist()
+    df_veic    = db.get_veiculos()
+    df_cond    = db.get_condutores()
+    veiculos   = df_veic["placa"].tolist() if not df_veic.empty else []
+    condutores = df_cond["nome"].tolist()  if not df_cond.empty else []
 
     if not veiculos:
         st.warning("Cadastre ao menos um veículo antes de lançar.")
