@@ -9,20 +9,30 @@ st.set_page_config(
     page_title="KITAGAWA — Gestão de Abastecimento",
     page_icon="🚛",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed",
 )
 
+# ── CSS global — esconde menu de páginas e estiliza login ─────────
 st.markdown("""
 <style>
+/* Esconde menu de páginas do sidebar */
+[data-testid="stSidebarNav"] { display: none !important; }
+section[data-testid="stSidebar"] > div:first-child { padding-top: 0; }
+
+/* Sidebar escura */
 [data-testid="stSidebar"] { background-color: #1A1D23; }
 [data-testid="stSidebar"] * { color: #E2E8F0 !important; }
 .block-container { padding-top: 1.5rem; }
+
+/* KPI cards */
 div[data-testid="metric-container"] {
     background: #1A1D23;
     border: 1px solid #2A2D35;
     border-radius: 12px;
     padding: 16px;
 }
+
+/* Logo animado */
 .login-logo {
     width: 160px;
     height: 160px;
@@ -52,13 +62,6 @@ div[data-testid="metric-container"] {
     text-align: center;
     margin-bottom: 28px;
 }
-.login-card {
-    background: #14201A;
-    border: 1px solid #1F3328;
-    border-radius: 18px;
-    padding: 32px 36px;
-    box-shadow: 0 12px 48px rgba(0,0,0,0.5);
-}
 </style>
 """, unsafe_allow_html=True)
 
@@ -75,7 +78,7 @@ if not st.session_state.logado:
 
     # Carrega logo como base64
     logo_b64 = ""
-    for path in ["logo.png", "streamlit/logo.png", "../logo.png"]:
+    for path in ["streamlit/logo.png", "logo.png", "../logo.png"]:
         if os.path.exists(path):
             with open(path, "rb") as f:
                 logo_b64 = base64.b64encode(f.read()).decode()
@@ -85,11 +88,11 @@ if not st.session_state.logado:
     _, col, _ = st.columns([1, 1.2, 1])
 
     with col:
-        # Logo centralizado
+        # Logo
         if logo_b64:
-            st.markdown(f"""
-            <img src="data:image/png;base64,{logo_b64}" class="login-logo"/>
-            """, unsafe_allow_html=True)
+            st.markdown(
+                f'<img src="data:image/png;base64,{logo_b64}" class="login-logo"/>',
+                unsafe_allow_html=True)
         else:
             st.markdown(
                 '<div style="text-align:center;font-size:90px;">🚛</div>',
@@ -101,9 +104,7 @@ if not st.session_state.logado:
         <p class="login-subtitle">Sistema de Gestão de Abastecimento</p>
         """, unsafe_allow_html=True)
 
-        # Card login
-        st.markdown('<div class="login-card">', unsafe_allow_html=True)
-
+        # Formulário de login — sem div extra, sem bloco preto
         with st.form("form_login"):
             usuario = st.text_input("👤  Usuário")
             senha   = st.text_input("🔒  Senha", type="password")
@@ -111,8 +112,6 @@ if not st.session_state.logado:
                 "▶  ENTRAR",
                 use_container_width=True,
                 type="primary")
-
-        st.markdown("</div>", unsafe_allow_html=True)
 
         if entrar:
             if not usuario or not senha:
