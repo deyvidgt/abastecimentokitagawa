@@ -8,7 +8,7 @@ __pycache__/
 *.db
 *.db-journal
 
-.streamlit/secrets.toml
+streamlit/.streamlit/secrets.toml
 
 # Tema salvo localmente
 theme.json
