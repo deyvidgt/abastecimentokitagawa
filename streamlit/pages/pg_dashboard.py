@@ -90,22 +90,26 @@ def render():
         monthly = df.groupby(df["data"].dt.to_period("M"))["valor"].sum().reset_index()
         monthly["data"] = monthly["data"].dt.to_timestamp()
         fig1 = go.Figure()
-        fig1.add_trace(go.Scatter(
-            x=monthly["data"], y=monthly["valor"],
-            fill="tozeroy", fillcolor="rgba(59,130,246,0.15)",
-            line=dict(color=t["C_ACCENT"], width=2.5),
-            text=[f"R${v/1000:.1f}k" for v in monthly["valor"]],
-            textposition="top center", textfont=dict(color=t["C_TEXT"], size=10),
-            mode="lines+markers+text"))
-        fig1.update_layout(
-            title=dict(text="Evolução Financeira Mensal",
-                       font=dict(color=t["C_TEXT"], size=14)),
-            paper_bgcolor=t["C_SURFACE"], plot_bgcolor=t["C_SURFACE"],
-            font=dict(color=t["C_MUTED"]),
-            yaxis=dict(tickprefix="R$", gridcolor=t["C_BORDER"]),
-            xaxis=dict(gridcolor=t["C_BORDER"]),
-            showlegend=False, margin=dict(l=0,r=0,t=40,b=0))
-        st.plotly_chart(fig1, use_container_width=True)
+        fig1 = go.Figure()
+    fig1.add_trace(go.Scatter(
+        x=monthly["data"],
+        y=monthly["valor"],
+        fill="tozeroy",
+        fillcolor="rgba(59,130,246,0.15)",
+        line=dict(color=t["C_ACCENT"], width=2.5),
+        mode="lines+markers",
+        marker=dict(size=6)))
+    fig1.update_layout(
+        title=dict(text="Evolução Financeira Mensal",
+                   font=dict(color=t["C_TEXT"], size=14)),
+        paper_bgcolor=t["C_SURFACE"],
+        plot_bgcolor=t["C_SURFACE"],
+        font=dict(color=t["C_MUTED"]),
+        yaxis=dict(tickprefix="R$", gridcolor=t["C_BORDER"]),
+        xaxis=dict(gridcolor=t["C_BORDER"]),
+        showlegend=False,
+        margin=dict(l=0,r=0,t=40,b=0))
+    st.plotly_chart(fig1, use_container_width=True)
 
     with col_b:
         cat = df.groupby("categoria")["valor"].sum().reset_index()
