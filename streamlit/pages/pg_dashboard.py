@@ -149,10 +149,9 @@ def render():
     with col_c:
         medias = []
         for p in df["placa"].unique():
-            t2 = df[df["placa"]==p].sort_values("horimetro")
-            if len(t2)>1 and t2["quantidade"].sum()>0:
-                kml = (t2["horimetro"].max()-t2["horimetro"].min())/t2["quantidade"].sum()
-                medias.append({"placa":p,"kml":round(kml,2)})
+            v = df[df["placa"]==p].sort_values("horimetro")
+            if len(v)>1 and v["quantidade"].sum()>0:
+                kml = (v["horimetro"].max()-v["horimetro"].min())/v["quantidade"].sum()
         if medias:
             df_kml = pd.DataFrame(medias).sort_values("kml",ascending=False).head(10)
             median  = df_kml["kml"].median()
