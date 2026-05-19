@@ -1,0 +1,7 @@
+git add .
+git commit -m "Descrição do que mudou"
+git push
+
+
+Usuário: admin
+Senha:   admin123
