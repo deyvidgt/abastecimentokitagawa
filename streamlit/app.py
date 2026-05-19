@@ -9,7 +9,7 @@ st.set_page_config(
     page_title="KITAGAWA — Gestão de Abastecimento",
     page_icon="🚛",
     layout="wide",
-    initial_sidebar_state="collapsed",
+    initial_sidebar_state="expanded",
 )
 
 from theme_web import apply_css, get_theme, DEFAULT_THEME
