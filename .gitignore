@@ -15,7 +15,7 @@ theme.json
 
 # Ícone gerado
 logo.ico
-logo.png
+/logo.png
 
 # Build / PyInstaller
 dist/
