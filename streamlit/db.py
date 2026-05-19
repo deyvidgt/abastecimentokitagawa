@@ -14,7 +14,7 @@ def _hash(senha: str) -> str:
 @st.cache_resource
 def get_client() -> Client:
     url = "https://avbfpesmjghiindghnzx.supabase.co"
-    key = "sb_publishable_ZzQ17v4ImJB1Kiq_Ky5K_Q_HSQFNP7w"
+    key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF2YmZwZXNtamdoaWluZGdobnp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxNzA2OTksImV4cCI6MjA5NDc0NjY5OX0.BES-GQT-yzX7fNzvLaIFHw98gwZEGHDRzKNZIXbSvCc"
     return create_client(url, key)
 
 
