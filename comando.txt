@@ -1,0 +1,25 @@
+# ============================================================
+#  COMO INSTALAR E COMPILAR — Sistema Abastecimento ERP v11
+# ============================================================
+
+# 1. Instale as dependências
+pip install pyinstaller pandas matplotlib customtkinter openpyxl Pillow reportlab
+
+# 2. Gere o executável (use o .spec para manter todas as configs)
+pyinstaller SistemaAbastecimento.spec
+
+# O .exe estará em:  dist/SistemaAbastecimento.exe
+
+# ── Notas ────────────────────────────────────────────────────
+# • O executável impede múltiplas instâncias via CreateMutex (Windows)
+#   ou arquivo de lock em /tmp (Linux/macOS).
+# • Se aparecer aviso de antivírus, adicione o .exe como exceção
+#   (falso positivo comum em builds PyInstaller com UPX).
+# • Para rebuild rápido após mudança em um módulo:
+#     pyinstaller SistemaAbastecimento.spec --noconfirm
+
+
+pip install pyinstaller pandas matplotlib customtkinter openpyxl Pillow reportlab
+
+pyinstaller --onefile --windowed --icon=logo.ico --name SistemaAbastecimento SistemaAbastecimento.spec
+
