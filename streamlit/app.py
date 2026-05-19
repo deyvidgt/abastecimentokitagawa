@@ -1,5 +1,5 @@
 # =================================================================
-# APP.PY — Ponto de entrada do sistema Streamlit
+# APP.PY — Ponto de entrada com sistema de temas
 # =================================================================
 import streamlit as st
 import base64
@@ -9,61 +9,15 @@ st.set_page_config(
     page_title="KITAGAWA — Gestão de Abastecimento",
     page_icon="🚛",
     layout="wide",
-    initial_sidebar_state="collapsed",
+    initial_sidebar_state="expanded",
 )
 
-# ── CSS global — esconde menu de páginas e estiliza login ─────────
-st.markdown("""
-<style>
-/* Esconde menu de páginas do sidebar */
-[data-testid="stSidebarNav"] { display: none !important; }
-section[data-testid="stSidebar"] > div:first-child { padding-top: 0; }
+from theme_web import apply_css, get_theme, DEFAULT_THEME
 
-/* Sidebar escura */
-[data-testid="stSidebar"] { background-color: #1A1D23; }
-[data-testid="stSidebar"] * { color: #E2E8F0 !important; }
-.block-container { padding-top: 1.5rem; }
-
-/* KPI cards */
-div[data-testid="metric-container"] {
-    background: #1A1D23;
-    border: 1px solid #2A2D35;
-    border-radius: 12px;
-    padding: 16px;
-}
-
-/* Logo animado */
-.login-logo {
-    width: 160px;
-    height: 160px;
-    object-fit: contain;
-    border-radius: 50%;
-    box-shadow: 0 0 40px rgba(16,185,129,0.5);
-    animation: pulse 3s infinite;
-    display: block;
-    margin: 0 auto 16px auto;
-}
-@keyframes pulse {
-    0%   { box-shadow: 0 0 20px rgba(16,185,129,0.3); }
-    50%  { box-shadow: 0 0 60px rgba(16,185,129,0.8); }
-    100% { box-shadow: 0 0 20px rgba(16,185,129,0.3); }
-}
-.login-title {
-    font-size: 2.2rem;
-    font-weight: 900;
-    color: #D1FAE5;
-    letter-spacing: 6px;
-    text-align: center;
-    margin: 0 0 4px 0;
-}
-.login-subtitle {
-    color: #4A7C65;
-    font-size: 0.9rem;
-    text-align: center;
-    margin-bottom: 28px;
-}
-</style>
-""", unsafe_allow_html=True)
+# Aplica CSS do tema atual
+tema_atual = st.session_state.get("tema", DEFAULT_THEME)
+apply_css(tema_atual)
+t = get_theme(tema_atual)
 
 import db
 
@@ -76,9 +30,8 @@ if "logado" not in st.session_state:
 # =================================================================
 if not st.session_state.logado:
 
-    # Carrega logo como base64
     logo_b64 = ""
-    for path in ["streamlit/logo.png", "logo.png", "../logo.png"]:
+    for path in ["streamlit/logo.png", "logo.png"]:
         if os.path.exists(path):
             with open(path, "rb") as f:
                 logo_b64 = base64.b64encode(f.read()).decode()
@@ -88,30 +41,25 @@ if not st.session_state.logado:
     _, col, _ = st.columns([1, 1.2, 1])
 
     with col:
-        # Logo
         if logo_b64:
             st.markdown(
                 f'<img src="data:image/png;base64,{logo_b64}" class="login-logo"/>',
                 unsafe_allow_html=True)
         else:
             st.markdown(
-                '<div style="text-align:center;font-size:90px;">🚛</div>',
+                f'<div style="text-align:center;font-size:90px;">🚛</div>',
                 unsafe_allow_html=True)
 
-        # Título
-        st.markdown("""
+        st.markdown(f"""
         <p class="login-title">KITAGAWA</p>
         <p class="login-subtitle">Sistema de Gestão de Abastecimento</p>
         """, unsafe_allow_html=True)
 
-        # Formulário de login — sem div extra, sem bloco preto
         with st.form("form_login"):
             usuario = st.text_input("👤  Usuário")
             senha   = st.text_input("🔒  Senha", type="password")
             entrar  = st.form_submit_button(
-                "▶  ENTRAR",
-                use_container_width=True,
-                type="primary")
+                "▶  ENTRAR", use_container_width=True, type="primary")
 
         if entrar:
             if not usuario or not senha:
@@ -126,9 +74,7 @@ if not st.session_state.logado:
                     st.error("❌  Usuário ou senha incorretos.")
 
         st.markdown("<br>", unsafe_allow_html=True)
-
-        if st.button("🔑  Esqueci / alterar senha",
-                     use_container_width=True):
+        if st.button("🔑  Esqueci / alterar senha", use_container_width=True):
             st.session_state["mostrar_alterar_senha"] = (
                 not st.session_state.get("mostrar_alterar_senha", False))
 
@@ -137,13 +83,11 @@ if not st.session_state.logado:
             st.markdown("#### Alterar senha")
             with st.form("form_alterar"):
                 u2   = st.text_input("Usuário")
-                ant  = st.text_input("Senha atual (admin deixa em branco)",
-                                      type="password")
+                ant  = st.text_input("Senha atual (admin deixa em branco)", type="password")
                 nov  = st.text_input("Nova senha", type="password")
                 conf = st.text_input("Confirmar nova senha", type="password")
                 salvar = st.form_submit_button("💾  Salvar",
-                                               use_container_width=True,
-                                               type="primary")
+                    use_container_width=True, type="primary")
             if salvar:
                 if len(nov) < 6:
                     st.warning("Mínimo 6 caracteres.")
