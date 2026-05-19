@@ -92,7 +92,7 @@ def render():
         fig1 = go.Figure()
         fig1.add_trace(go.Scatter(
             x=monthly["data"], y=monthly["valor"],
-            fill="tozeroy", fillcolor=f"{t['C_ACCENT']}30",
+            fill="tozeroy", fillcolor="rgba(59,130,246,0.15)",
             line=dict(color=t["C_ACCENT"], width=2.5),
             text=[f"R${v/1000:.1f}k" for v in monthly["valor"]],
             textposition="top center", textfont=dict(color=t["C_TEXT"], size=10),
