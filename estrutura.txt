@@ -1,0 +1,30 @@
+projeto/
+├── __pycache__/
+├── analisador.py          ← ponto de entrada
+├── config.py
+├── database.py
+├── etl.py
+├── export.py
+├── estrutura.txt
+├── gerar_ico.py
+├── logo.png
+├── logo.ico               ← necessário para o ícone do .exe
+├── SistemaAbastecimento.exe
+├── SistemaAbastecimento.spec
+├── theme.py
+├── theme.jsom
+└── ui/
+    ├── __init__.py
+    ├── __pycache__/
+    ├── app.py
+    ├── widgets.py
+    ├── dialogs.py
+    └── views/
+        ├── __init__.py
+        ├── dashboard.py
+        ├── frota.py
+        ├── custos.py
+        ├── registros.py
+        ├── cadastros.py
+        ├── importacao.py
+        └── configuracoes.py

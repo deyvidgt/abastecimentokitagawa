@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyd
+*.pyo
+
+# Banco de dados (dados reais — não subir)
+*.db
+*.db-journal
+
+# Tema salvo localmente
+theme.json
+
+# Ícone gerado
+logo.ico
+logo.png
+
+# Build / PyInstaller
+dist/
+build/
+*.spec.bak
+
+# VS Code / IDE
+.vscode/
+.idea/
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
