@@ -9,7 +9,7 @@ st.set_page_config(
     page_title="KITAGAWA — Gestão de Abastecimento",
     page_icon="🚛",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed",
 )
 
 from theme_web import apply_css, get_theme, DEFAULT_THEME
@@ -19,6 +19,15 @@ tema_atual = st.session_state.get("tema", DEFAULT_THEME)
 apply_css(tema_atual)
 t = get_theme(tema_atual)
 
+# Esconde sidebar na tela de login
+if not st.session_state.get("logado", False):
+    st.markdown("""
+    <style>
+    [data-testid="stSidebar"] { display: none !important; }
+    [data-testid="stSidebarCollapsedControl"] { display: none !important; }
+    </style>
+    """, unsafe_allow_html=True)
+    
 import db
 
 if "logado" not in st.session_state:
