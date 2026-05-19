@@ -94,7 +94,6 @@ def render():
             x=monthly["data"], y=monthly["valor"],
             fill="tozeroy", fillcolor=f"{t['C_ACCENT']}30",
             line=dict(color=t["C_ACCENT"], width=2.5),
-            mode="lines+markers",
             text=[f"R${v/1000:.1f}k" for v in monthly["valor"]],
             textposition="top center", textfont=dict(color=t["C_TEXT"], size=10),
             mode="lines+markers+text"))
