@@ -1,5 +1,5 @@
 # =================================================================
-# DB.PY — Camada de acesso ao Supabase (PostgreSQL na nuvem)
+# DB.PY — Camada de acesso ao Supabase
 # =================================================================
 import hashlib
 import streamlit as st
@@ -13,23 +13,19 @@ def _hash(senha: str) -> str:
 
 @st.cache_resource
 def get_client() -> Client:
-    url = "https://avbfpesmjghiindghnzx.supabase.co"
-    key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF2YmZwZXNtamdoaWluZGdobnp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxNzA2OTksImV4cCI6MjA5NDc0NjY5OX0.BES-GQT-yzX7fNzvLaIFHw98gwZEGHDRzKNZIXbSvCc"
+    url = st.secrets["supabase"]["url"]
+    key = st.secrets["supabase"]["key"]
     return create_client(url, key)
 
 
 # ── Autenticação ──────────────────────────────────────────────────
 def verificar_login(usuario: str, senha: str) -> dict | None:
-    """Retorna dict do usuário ou None se inválido."""
     sb = get_client()
     res = sb.table("usuarios").select("*").eq(
         "usuario", usuario.strip()).eq("ativo", True).execute()
-    if not res.data:
-        return None
+    if not res.data: return None
     u = res.data[0]
-    if u["senha_hash"] == _hash(senha):
-        return u
-    return None
+    return u if u["senha_hash"] == _hash(senha) else None
 
 
 def alterar_senha(usuario: str, nova_senha: str) -> bool:
@@ -43,7 +39,7 @@ def alterar_senha(usuario: str, nova_senha: str) -> bool:
 def listar_usuarios() -> pd.DataFrame:
     sb = get_client()
     res = sb.table("usuarios").select(
-        "id, usuario, perfil, ativo, criado_em").order("usuario").execute()
+        "id,usuario,perfil,ativo,criado_em").order("usuario").execute()
     return pd.DataFrame(res.data) if res.data else pd.DataFrame()
 
 
@@ -61,6 +57,40 @@ def criar_usuario(usuario: str, senha: str, perfil: str = "operador") -> bool:
         return False
 
 
+# ── Preferências por usuário ──────────────────────────────────────
+def salvar_preferencia_usuario(usuario: str, chave: str, valor: str):
+    """Salva preferência do usuário (ex: tema) no Supabase."""
+    sb = get_client()
+    try:
+        # Verifica se já existe
+        res = sb.table("preferencias_usuario").select("id").eq(
+            "usuario", usuario).eq("chave", chave).execute()
+        if res.data:
+            sb.table("preferencias_usuario").update(
+                {"valor": valor}
+            ).eq("usuario", usuario).eq("chave", chave).execute()
+        else:
+            sb.table("preferencias_usuario").insert({
+                "usuario": usuario, "chave": chave, "valor": valor
+            }).execute()
+    except Exception:
+        pass  # Falha silenciosa
+
+
+def get_preferencia_usuario(usuario: str, chave: str,
+                              default: str = None) -> str | None:
+    """Busca preferência do usuário no Supabase."""
+    sb = get_client()
+    try:
+        res = sb.table("preferencias_usuario").select("valor").eq(
+            "usuario", usuario).eq("chave", chave).execute()
+        if res.data:
+            return res.data[0]["valor"]
+    except Exception:
+        pass
+    return default
+
+
 # ── Veículos ──────────────────────────────────────────────────────
 def get_veiculos() -> pd.DataFrame:
     sb = get_client()
@@ -74,8 +104,7 @@ def inserir_veiculo(placa, modelo, tipo, status="Ativo") -> bool:
         sb.table("veiculos").insert({
             "placa": placa.upper().strip(),
             "modelo": modelo.upper().strip(),
-            "tipo": tipo,
-            "status": status,
+            "tipo": tipo, "status": status,
         }).execute()
         return True
     except Exception:
@@ -131,10 +160,9 @@ def get_registros(data_ini=None, data_fim=None,
     if placa:    q = q.ilike("placa", f"%{placa}%")
     if produto:  q = q.ilike("produto", f"%{produto}%")
     res = q.order("data", desc=True).limit(limit).execute()
-    if not res.data:
-        return pd.DataFrame()
+    if not res.data: return pd.DataFrame()
     df = pd.DataFrame(res.data)
-    for col in ["valor", "quantidade", "horimetro"]:
+    for col in ["valor","quantidade","horimetro"]:
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0)
     df["data"] = pd.to_datetime(df["data"], errors="coerce")
@@ -163,7 +191,7 @@ def inserir_registro(data, produto, responsavel, placa, frota,
 
 
 def atualizar_registro(reg_id, data, produto, responsavel, placa,
-                       valor, quantidade, horimetro, categoria) -> bool:
+                        valor, quantidade, horimetro, categoria) -> bool:
     hv = f"{data}-{placa}-{valor:.2f}-{horimetro:.1f}-{quantidade:.2f}-EDIT{reg_id}"
     sb = get_client()
     try:
@@ -201,8 +229,6 @@ def inserir_import_log(arquivo, inseridos, duplicados, erros, detalhes):
     sb.table("import_log").insert({
         "arquivo": arquivo,
         "data_import": datetime.now().isoformat(),
-        "inseridos": inseridos,
-        "duplicados": duplicados,
-        "erros": erros,
-        "detalhes": detalhes,
+        "inseridos": inseridos, "duplicados": duplicados,
+        "erros": erros, "detalhes": detalhes,
     }).execute()

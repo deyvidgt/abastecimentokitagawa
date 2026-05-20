@@ -1,13 +1,13 @@
 # =================================================================
-# PAGES/PG_FROTA.PY
+# PAGES/PG_FROTA.PY — com filtro de período
 # =================================================================
 import streamlit as st
 import pandas as pd
 import io
-from datetime import datetime
+from datetime import datetime, timedelta
 import db
 from theme_web import get_theme
-from export_utils import botoes_download, df_to_excel_multi
+from export_utils import botoes_download
 
 
 def render():
@@ -19,9 +19,45 @@ def render():
     <hr style="border-color:{t['C_BORDER']};"/>
     """, unsafe_allow_html=True)
 
-    df = db.get_todos_registros()
-    if df.empty:
+    # ── Filtros de período ────────────────────────────────────────
+    c1, c2, c3, c4, c5, c6 = st.columns([1.4, 1.4, .6, .6, .6, .8])
+    with c1: data_ini = st.date_input("De",  value=datetime(2000,1,1).date(), key="frota_ini")
+    with c2: data_fim = st.date_input("Até", value=datetime.now().date(),     key="frota_fim")
+    with c3:
+        if st.button("30d", key="f30"):
+            data_ini = (datetime.now()-timedelta(30)).date()
+            data_fim = datetime.now().date()
+    with c4:
+        if st.button("90d", key="f90"):
+            data_ini = (datetime.now()-timedelta(90)).date()
+            data_fim = datetime.now().date()
+    with c5:
+        if st.button("1ano", key="f1a"):
+            data_ini = (datetime.now()-timedelta(365)).date()
+            data_fim = datetime.now().date()
+    with c6:
+        if st.button("Tudo", key="ftudo"):
+            data_ini = datetime(2000,1,1).date()
+            data_fim = datetime.now().date()
+
+    # Filtro por placa
+    df_all = db.get_todos_registros()
+    if df_all.empty:
         st.info("Nenhum registro encontrado."); return
+
+    placas_disponiveis = ["Todas"] + sorted(df_all["placa"].dropna().unique().tolist())
+    placa_sel = st.selectbox("🚛 Filtrar por veículo", placas_disponiveis, key="frota_placa")
+
+    # Aplica filtros
+    df = db.get_registros(data_ini=str(data_ini), data_fim=str(data_fim), limit=10000)
+    df = df.dropna(subset=["data"])
+    if placa_sel != "Todas":
+        df = df[df["placa"] == placa_sel]
+
+    if df.empty:
+        st.warning("Nenhum registro no período selecionado."); return
+
+    st.caption(f"📅 {data_ini} a {data_fim} · {len(df)} registros · {df['placa'].nunique()} veículo(s)")
 
     # ── Resumo por veículo ────────────────────────────────────────
     resumo = []
@@ -31,9 +67,9 @@ def render():
         ltrs  = v["quantidade"].sum()
         diff  = v["horimetro"].max()-v["horimetro"].min() if len(v)>1 else 0
         kml   = diff/ltrs if ltrs>0 else 0
-        resumo.append({"Placa":placa,"Registros":len(v),
+        resumo.append({"Placa":placa, "Registros":len(v),
                        "Custo Total":round(custo,2),
-                       "Litros":round(ltrs,2),"km/L":round(kml,2)})
+                       "Litros":round(ltrs,2), "km/L":round(kml,2)})
     df_res = pd.DataFrame(resumo)
 
     # ── Downloads ─────────────────────────────────────────────────
@@ -52,7 +88,7 @@ def render():
         sheets[str(placa)[:31]] = v
 
     botoes_download(st, df_res, "frota",
-        "GESTÃO DE FROTA — KITAGAWA",
+        f"GESTÃO DE FROTA — {data_ini} a {data_fim}",
         colunas_pdf=["Placa","Registros","Custo Total","Litros","km/L"],
         sheets_excel=sheets)
 
@@ -70,7 +106,7 @@ def render():
         with st.expander(
                 f"🚛  {placa}  —  R$ {custo:,.2f}  |  "
                 f"{ltrs:,.0f} L  |  {kml:.2f} km/L"):
-            c1,c2,c3 = st.columns(3)
+            c1, c2, c3 = st.columns(3)
             c1.metric("💰 Custo Total", f"R$ {custo:,.2f}")
             c2.metric("🛢️ Litros",      f"{ltrs:,.0f} L")
             c3.metric("📈 km/L",        f"{kml:.2f}", delta_color=cor_kml)
@@ -84,7 +120,6 @@ def render():
             df_v.columns = ["Data","Produto","Valor","Litros","Horímetro","Condutor"]
             st.dataframe(df_v, use_container_width=True, hide_index=True)
 
-            # Download individual por veículo
             buf = io.BytesIO()
             df_v.to_excel(buf, index=False)
             st.download_button(

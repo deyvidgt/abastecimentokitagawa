@@ -1,6 +1,7 @@
 # =================================================================
-# THEME_WEB.PY — Temas visuais para a versão web
+# THEME_WEB.PY — Temas visuais com preferência por usuário
 # =================================================================
+import streamlit as st
 
 THEMES = {
     "Dark Blue": {
@@ -14,6 +15,7 @@ THEMES = {
         "C_DANGER":  "#EF4444",
         "C_TEXT":    "#E2E8F0",
         "C_MUTED":   "#64748B",
+        "mode":      "dark",
     },
     "Dark Emerald": {
         "label":     "🌿  Dark Emerald",
@@ -26,6 +28,7 @@ THEMES = {
         "C_DANGER":  "#EF4444",
         "C_TEXT":    "#D1FAE5",
         "C_MUTED":   "#4A7C65",
+        "mode":      "dark",
     },
     "Dark Purple": {
         "label":     "🔮  Dark Purple",
@@ -38,6 +41,7 @@ THEMES = {
         "C_DANGER":  "#EF4444",
         "C_TEXT":    "#EDE9FE",
         "C_MUTED":   "#6D5D8A",
+        "mode":      "dark",
     },
     "Dark Amber": {
         "label":     "🔥  Dark Amber",
@@ -50,6 +54,7 @@ THEMES = {
         "C_DANGER":  "#EF4444",
         "C_TEXT":    "#FEF3C7",
         "C_MUTED":   "#8A6A38",
+        "mode":      "dark",
     },
     "Light": {
         "label":     "☀️  Light",
@@ -62,30 +67,85 @@ THEMES = {
         "C_DANGER":  "#DC2626",
         "C_TEXT":    "#1E293B",
         "C_MUTED":   "#64748B",
+        "mode":      "light",
+    },
+    "Light Green": {
+        "label":     "🌱  Light Green",
+        "C_BG":      "#F0FDF4",
+        "C_SURFACE": "#FFFFFF",
+        "C_BORDER":  "#BBF7D0",
+        "C_ACCENT":  "#16A34A",
+        "C_SUCCESS": "#15803D",
+        "C_WARNING": "#D97706",
+        "C_DANGER":  "#DC2626",
+        "C_TEXT":    "#14532D",
+        "C_MUTED":   "#4B7A5E",
+        "mode":      "light",
     },
 }
 
 DEFAULT_THEME = "Dark Emerald"
 
 
+def get_tema_usuario() -> str:
+    """Retorna o tema salvo para o usuário atual."""
+    usuario = st.session_state.get("usuario", {})
+    prefs   = st.session_state.get("preferencias_usuario", {})
+    uid     = usuario.get("usuario", "default")
+    return prefs.get(uid, {}).get("tema", DEFAULT_THEME)
+
+
+def salvar_tema_usuario(tema: str):
+    """Salva o tema nas preferências do usuário (session_state)."""
+    usuario = st.session_state.get("usuario", {})
+    uid     = usuario.get("usuario", "default")
+    if "preferencias_usuario" not in st.session_state:
+        st.session_state["preferencias_usuario"] = {}
+    if uid not in st.session_state["preferencias_usuario"]:
+        st.session_state["preferencias_usuario"][uid] = {}
+    st.session_state["preferencias_usuario"][uid]["tema"] = tema
+    # Também atualiza o tema global da sessão
+    st.session_state["tema"] = tema
+
+    # Persiste no Supabase
+    try:
+        import db as db_module
+        db_module.salvar_preferencia_usuario(uid, "tema", tema)
+    except Exception:
+        pass  # Falha silenciosa — tema continua na sessão
+
+
+def carregar_preferencias_usuario():
+    """Carrega preferências do usuário do Supabase ao fazer login."""
+    usuario = st.session_state.get("usuario", {})
+    uid     = usuario.get("usuario", "default")
+    try:
+        import db as db_module
+        tema = db_module.get_preferencia_usuario(uid, "tema")
+        if tema and tema in THEMES:
+            if "preferencias_usuario" not in st.session_state:
+                st.session_state["preferencias_usuario"] = {}
+            if uid not in st.session_state["preferencias_usuario"]:
+                st.session_state["preferencias_usuario"][uid] = {}
+            st.session_state["preferencias_usuario"][uid]["tema"] = tema
+            st.session_state["tema"] = tema
+    except Exception:
+        pass
+
+
 def get_theme(name: str = None) -> dict:
     if name is None:
-        name = DEFAULT_THEME
+        name = get_tema_usuario()
     return THEMES.get(name, THEMES[DEFAULT_THEME])
 
 
 def apply_css(theme_name: str = None):
-    """Gera o CSS global baseado no tema selecionado."""
-    import streamlit as st
     t = get_theme(theme_name)
     st.markdown(f"""
 <style>
-/* ── Reset e base ── */
 [data-testid="stSidebarNav"] {{ display: none !important; }}
 .block-container {{ padding-top: 1rem !important; }}
-body {{ background-color: {t['C_BG']}; }}
 
-/* ── Sidebar ── */
 [data-testid="stSidebar"] {{
     background-color: {t['C_SURFACE']} !important;
     border-right: 1px solid {t['C_BORDER']};
@@ -104,19 +164,13 @@ body {{ background-color: {t['C_BG']}; }}
 [data-testid="stSidebar"] .stButton button:hover {{
     background: {t['C_BORDER']} !important;
 }}
-
-/* ── KPI cards ── */
 div[data-testid="metric-container"] {{
     background: {t['C_SURFACE']};
     border: 1px solid {t['C_BORDER']};
     border-radius: 12px;
     padding: 16px;
 }}
-
-/* ── Tabelas ── */
 .stDataFrame {{ border-radius: 10px; }}
-
-/* ── Logo login ── */
 .login-logo {{
     width: 160px; height: 160px;
     object-fit: contain; border-radius: 50%;
@@ -138,8 +192,6 @@ div[data-testid="metric-container"] {{
     color: {t['C_MUTED']}; font-size: 0.9rem;
     text-align: center; margin-bottom: 28px;
 }}
-
-/* ── Botão importar sidebar ── */
 .btn-importar button {{
     background: {t['C_ACCENT']} !important;
     color: white !important;
@@ -147,5 +199,10 @@ div[data-testid="metric-container"] {{
     border-radius: 10px !important;
     height: 44px !important;
 }}
+/* Tema claro — fundo da página */
+{"" if t['mode']=='dark' else f"""
+.main {{ background-color: {t['C_BG']} !important; }}
+[data-testid="stAppViewContainer"] {{ background-color: {t['C_BG']} !important; }}
+"""}
 </style>
 """, unsafe_allow_html=True)

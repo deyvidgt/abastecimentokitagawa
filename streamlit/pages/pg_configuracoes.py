@@ -1,58 +1,87 @@
 # =================================================================
-# PAGES/PG_CONFIGURACOES.PY — Configurações com troca de tema
+# PAGES/PG_CONFIGURACOES.PY — Tema por usuário + Usuários
 # =================================================================
 import streamlit as st
 import db
-from theme_web import THEMES, get_theme, DEFAULT_THEME
+from theme_web import (THEMES, get_theme, get_tema_usuario,
+                        salvar_tema_usuario, DEFAULT_THEME)
 
 
 def render():
     t = get_theme(st.session_state.get("tema", DEFAULT_THEME))
+    usuario_logado = st.session_state.get("usuario", {}).get("usuario", "?")
 
     st.markdown(f"""
     <h2 style="color:{t['C_TEXT']}">⚙️ Configurações</h2>
-    <p style="color:{t['C_MUTED']}">Personalize o sistema</p>
+    <p style="color:{t['C_MUTED']}">Personalize sua experiência</p>
     <hr style="border-color:{t['C_BORDER']};"/>
     """, unsafe_allow_html=True)
 
-    # ── Tema visual ───────────────────────────────────────────────
+    # ── Tema por usuário ──────────────────────────────────────────
     st.markdown(f"### 🎨 Tema Visual")
-    st.caption("Clique num tema para aplicar instantaneamente — sem recarregar.")
+    st.caption(f"Sua preferência é salva individualmente para **{usuario_logado}**.")
 
-    tema_atual = st.session_state.get("tema", DEFAULT_THEME)
-    cols = st.columns(len(THEMES))
+    tema_atual = get_tema_usuario()
 
-    for i, (nome, td) in enumerate(THEMES.items()):
+    # Separar temas escuros e claros
+    temas_escuros = {k: v for k, v in THEMES.items() if v["mode"] == "dark"}
+    temas_claros  = {k: v for k, v in THEMES.items() if v["mode"] == "light"}
+
+    st.markdown(f"**🌑 Temas Escuros**")
+    cols = st.columns(len(temas_escuros))
+    for i, (nome, td) in enumerate(temas_escuros.items()):
         with cols[i]:
             ativo = nome == tema_atual
             borda = f"3px solid {td['C_ACCENT']}" if ativo else f"1px solid {td['C_BORDER']}"
-            check = "✔ Ativo" if ativo else ""
-
             st.markdown(f"""
             <div style="background:{td['C_SURFACE']};border:{borda};
                         border-radius:12px;padding:12px;text-align:center;
-                        cursor:pointer;margin-bottom:8px;">
+                        margin-bottom:8px;">
                 <div style="display:flex;justify-content:center;gap:4px;margin-bottom:8px;">
-                    <div style="width:18px;height:18px;border-radius:50%;
-                                background:{td['C_ACCENT']};"></div>
-                    <div style="width:18px;height:18px;border-radius:50%;
-                                background:{td['C_SUCCESS']};"></div>
-                    <div style="width:18px;height:18px;border-radius:50%;
-                                background:{td['C_WARNING']};"></div>
-                    <div style="width:18px;height:18px;border-radius:50%;
-                                background:{td['C_DANGER']};"></div>
+                    <div style="width:16px;height:16px;border-radius:50%;background:{td['C_ACCENT']};"></div>
+                    <div style="width:16px;height:16px;border-radius:50%;background:{td['C_SUCCESS']};"></div>
+                    <div style="width:16px;height:16px;border-radius:50%;background:{td['C_WARNING']};"></div>
+                    <div style="width:16px;height:16px;border-radius:50%;background:{td['C_DANGER']};"></div>
                 </div>
-                <p style="color:{td['C_TEXT']};font-weight:700;
-                          font-size:12px;margin:0;">{td['label']}</p>
-                <p style="color:{td['C_ACCENT']};font-size:10px;
-                          margin:2px 0 0 0;">{check}</p>
+                <p style="color:{td['C_TEXT']};font-weight:700;font-size:12px;margin:0;">{td['label']}</p>
+                <p style="color:{td['C_ACCENT']};font-size:10px;margin:2px 0 0 0;">
+                    {"✔ Ativo" if ativo else ""}
+                </p>
             </div>
             """, unsafe_allow_html=True)
-
             if st.button("Aplicar", key=f"tema_{nome}",
                          use_container_width=True,
                          type="primary" if ativo else "secondary"):
-                st.session_state["tema"] = nome
+                salvar_tema_usuario(nome)
+                st.success(f"Tema '{nome}' aplicado!")
+                st.rerun()
+
+    st.markdown(f"**☀️ Temas Claros**")
+    cols2 = st.columns(len(temas_claros))
+    for i, (nome, td) in enumerate(temas_claros.items()):
+        with cols2[i]:
+            ativo = nome == tema_atual
+            borda = f"3px solid {td['C_ACCENT']}" if ativo else f"1px solid {td['C_BORDER']}"
+            st.markdown(f"""
+            <div style="background:{td['C_SURFACE']};border:{borda};
+                        border-radius:12px;padding:12px;text-align:center;
+                        margin-bottom:8px;">
+                <div style="display:flex;justify-content:center;gap:4px;margin-bottom:8px;">
+                    <div style="width:16px;height:16px;border-radius:50%;background:{td['C_ACCENT']};"></div>
+                    <div style="width:16px;height:16px;border-radius:50%;background:{td['C_SUCCESS']};"></div>
+                    <div style="width:16px;height:16px;border-radius:50%;background:{td['C_WARNING']};"></div>
+                    <div style="width:16px;height:16px;border-radius:50%;background:{td['C_DANGER']};"></div>
+                </div>
+                <p style="color:{td['C_TEXT']};font-weight:700;font-size:12px;margin:0;">{td['label']}</p>
+                <p style="color:{td['C_ACCENT']};font-size:10px;margin:2px 0 0 0;">
+                    {"✔ Ativo" if ativo else ""}
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
+            if st.button("Aplicar", key=f"tema_{nome}",
+                         use_container_width=True,
+                         type="primary" if ativo else "secondary"):
+                salvar_tema_usuario(nome)
                 st.success(f"Tema '{nome}' aplicado!")
                 st.rerun()
 
