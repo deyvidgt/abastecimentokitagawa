@@ -206,3 +206,12 @@ div[data-testid="metric-container"] {{
 """}
 </style>
 """, unsafe_allow_html=True)
+
+    if t['mode'] == 'light':
+        bg = t['C_BG']
+        st.markdown(f"""
+<style>
+.main {{ background-color: {bg} !important; }}
+[data-testid="stAppViewContainer"] {{ background-color: {bg} !important; }}
+</style>
+""", unsafe_allow_html=True)
