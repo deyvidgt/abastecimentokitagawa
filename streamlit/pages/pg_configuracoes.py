@@ -45,7 +45,7 @@ def render():
                 </div>
                 <p style="color:{td['C_TEXT']};font-weight:700;font-size:12px;margin:0;">{td['label']}</p>
                 <p style="color:{td['C_ACCENT']};font-size:10px;margin:2px 0 0 0;">
-                    {"✔ Ativo" if ativo else ""}
+                    {"✔ Ativo" if ativo else "&nbsp;"}
                 </p>
             </div>
             """, unsafe_allow_html=True)
@@ -74,7 +74,7 @@ def render():
                 </div>
                 <p style="color:{td['C_TEXT']};font-weight:700;font-size:12px;margin:0;">{td['label']}</p>
                 <p style="color:{td['C_ACCENT']};font-size:10px;margin:2px 0 0 0;">
-                    {"✔ Ativo" if ativo else ""}
+                    {"✔ Ativo" if ativo else "&nbsp;"}
                 </p>
             </div>
             """, unsafe_allow_html=True)
