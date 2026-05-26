@@ -21,8 +21,8 @@ def render():
     """, unsafe_allow_html=True)
 
     c1,c2,c3,c4,c5,c6,c7 = st.columns([1.4,1.4,.6,.6,.6,.6,.7])
-    with c1: data_ini = st.date_input("De",  value=datetime(2000,1,1).date())
-    with c2: data_fim = st.date_input("Até", value=datetime.now().date())
+    with c1: data_ini = st.date_input("De",  value=datetime(2000,1,1).date(), format="DD/MM/YYYY")
+    with c2: data_fim = st.date_input("Até", value=datetime.now().date(),     format="DD/MM/YYYY")
     with c3:
         if st.button("7d"):   data_ini=(datetime.now()-timedelta(7)).date();   data_fim=datetime.now().date()
     with c4:

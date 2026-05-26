@@ -21,8 +21,8 @@ def render():
 
     # ── Filtros de período ────────────────────────────────────────
     c1,c2,c3,c4,c5,c6 = st.columns([1.4,1.4,.6,.6,.6,.8])
-    with c1: data_ini = st.date_input("De",  value=datetime(2000,1,1).date(), key="frota_ini")
-    with c2: data_fim = st.date_input("Até", value=datetime.now().date(),     key="frota_fim")
+    with c1: data_ini = st.date_input("De",  value=datetime(2000,1,1).date(), key="frota_ini", format="DD/MM/YYYY")
+    with c2: data_fim = st.date_input("Até", value=datetime.now().date(),     key="frota_fim", format="DD/MM/YYYY")
     with c3:
         if st.button("30d",  key="f30"):   data_ini=(datetime.now()-timedelta(30)).date();  data_fim=datetime.now().date()
     with c4:
