@@ -24,13 +24,13 @@ def render():
     with c1: data_ini = st.date_input("De",  value=datetime(2000,1,1).date())
     with c2: data_fim = st.date_input("Até", value=datetime.now().date())
     with c3:
-        if st.button("7d"):   data_ini=(datetime.now()-timedelta(7)).date();  data_fim=datetime.now().date()
+        if st.button("7d"):   data_ini=(datetime.now()-timedelta(7)).date();   data_fim=datetime.now().date()
     with c4:
-        if st.button("30d"):  data_ini=(datetime.now()-timedelta(30)).date(); data_fim=datetime.now().date()
+        if st.button("30d"):  data_ini=(datetime.now()-timedelta(30)).date();  data_fim=datetime.now().date()
     with c5:
-        if st.button("90d"):  data_ini=(datetime.now()-timedelta(90)).date(); data_fim=datetime.now().date()
+        if st.button("90d"):  data_ini=(datetime.now()-timedelta(90)).date();  data_fim=datetime.now().date()
     with c6:
-        if st.button("1ano"): data_ini=(datetime.now()-timedelta(365)).date();data_fim=datetime.now().date()
+        if st.button("1ano"): data_ini=(datetime.now()-timedelta(365)).date(); data_fim=datetime.now().date()
     with c7:
         if st.button("Tudo"): data_ini=datetime(2000,1,1).date(); data_fim=datetime.now().date()
 
@@ -39,9 +39,8 @@ def render():
         st.info("Nenhum registro no período."); return
     df = df.dropna(subset=["data"])
 
-    # ── Downloads ────────────────────────────────────────────────
-    df_exp = df[["data","placa","produto","responsavel","valor","quantidade","horimetro","categoria"]].copy()
-    df_exp["data"] = df_exp["data"].astype(str)
+    # ── Downloads ─────────────────────────────────────────────────
+    df_exp = df[["data_fmt","placa","produto","responsavel","valor","quantidade","horimetro","categoria"]].copy()
     df_exp.columns = ["Data","Placa","Produto","Condutor","Valor R$","Litros","Horímetro","Categoria"]
 
     resumo = df.groupby("placa").agg(total=("valor","sum"),litros=("quantidade","sum"),n=("valor","count")).reset_index()
@@ -52,9 +51,9 @@ def render():
     monthly_exp.columns = ["Mês","Total R$"]
 
     botoes_download(st, df_exp, "dashboard",
-        f"DASHBOARD KITAGAWA | {data_ini} a {data_fim}",
+        f"DASHBOARD KITAGAWA | {data_ini.strftime('%d/%m/%Y')} a {data_fim.strftime('%d/%m/%Y')}",
         colunas_pdf=["Data","Placa","Produto","Valor R$","Litros","Categoria"],
-        sheets_excel={"Registros": df_exp, "Por Veículo": resumo, "Mensal": monthly_exp})
+        sheets_excel={"Registros":df_exp,"Por Veículo":resumo,"Mensal":monthly_exp})
 
     # ── KPIs ─────────────────────────────────────────────────────
     total_val = df["valor"].sum()
@@ -79,10 +78,10 @@ def render():
         m = df.groupby(df["data"].dt.to_period("M"))["valor"].sum().reset_index()
         m["data"] = m["data"].dt.to_timestamp()
         fig1 = go.Figure()
-        fig1.add_trace(go.Scatter(x=m["data"], y=m["valor"],
-            fill="tozeroy", fillcolor="rgba(16,185,129,0.15)",
-            line=dict(color=t["C_ACCENT"], width=2.5),
-            mode="lines+markers", marker=dict(size=6)))
+        fig1.add_trace(go.Scatter(x=m["data"],y=m["valor"],
+            fill="tozeroy",fillcolor="rgba(16,185,129,0.15)",
+            line=dict(color=t["C_ACCENT"],width=2.5),
+            mode="lines+markers",marker=dict(size=6)))
         fig1.update_layout(title=dict(text="Evolução Financeira Mensal",font=dict(color=t["C_TEXT"],size=14)),
             paper_bgcolor=t["C_SURFACE"],plot_bgcolor=t["C_SURFACE"],font=dict(color=t["C_MUTED"]),
             yaxis=dict(tickprefix="R$",gridcolor=t["C_BORDER"]),xaxis=dict(gridcolor=t["C_BORDER"]),
@@ -93,7 +92,8 @@ def render():
         fig2 = px.pie(cat,names="categoria",values="valor",title="Por Categoria",
             color_discrete_sequence=[t["C_ACCENT"],t["C_DANGER"],t["C_WARNING"],t["C_SUCCESS"]])
         fig2.update_layout(paper_bgcolor=t["C_SURFACE"],plot_bgcolor=t["C_SURFACE"],
-            font=dict(color=t["C_TEXT"]),title=dict(font=dict(color=t["C_TEXT"])),margin=dict(l=0,r=0,t=40,b=0))
+            font=dict(color=t["C_TEXT"]),title=dict(font=dict(color=t["C_TEXT"])),
+            margin=dict(l=0,r=0,t=40,b=0))
         fig2.update_traces(textfont_color="white")
         st.plotly_chart(fig2, use_container_width=True)
 
@@ -108,7 +108,7 @@ def render():
         showlegend=False,margin=dict(l=0,r=0,t=40,b=0))
     st.plotly_chart(fig3, use_container_width=True)
 
-    col_c, col_d = st.columns(2)
+    col_c,col_d = st.columns(2)
     with col_c:
         medias=[]
         for p in df["placa"].unique():
@@ -135,7 +135,8 @@ def render():
         for cn,cc in [("ABASTECIMENTO",t["C_ACCENT"]),("MANUTENÇÃO",t["C_DANGER"])]:
             if cn in dp.columns:
                 fig5.add_trace(go.Bar(x=dp.index,y=dp[cn],name=cn,marker_color=cc,opacity=0.85))
-        fig5.update_layout(barmode="stack",title=dict(text="Custo Mensal Empilhado",font=dict(color=t["C_TEXT"],size=13)),
+        fig5.update_layout(barmode="stack",
+            title=dict(text="Custo Mensal Empilhado",font=dict(color=t["C_TEXT"],size=13)),
             paper_bgcolor=t["C_SURFACE"],plot_bgcolor=t["C_SURFACE"],font=dict(color=t["C_MUTED"]),
             yaxis=dict(tickprefix="R$",gridcolor=t["C_BORDER"]),xaxis=dict(gridcolor=t["C_BORDER"]),
             legend=dict(font=dict(color=t["C_TEXT"])),margin=dict(l=0,r=0,t=40,b=0))

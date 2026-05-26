@@ -18,6 +18,14 @@ def get_client() -> Client:
     return create_client(url, key)
 
 
+def _formatar_datas(df: pd.DataFrame) -> pd.DataFrame:
+    """Converte coluna 'data' para datetime e cria 'data_fmt' em dd/mm/aaaa."""
+    if "data" in df.columns:
+        df["data"] = pd.to_datetime(df["data"], errors="coerce")
+        df["data_fmt"] = df["data"].dt.strftime("%d/%m/%Y")
+    return df
+
+
 # ── Autenticação ──────────────────────────────────────────────────
 def verificar_login(usuario: str, senha: str) -> dict | None:
     sb = get_client()
@@ -59,10 +67,8 @@ def criar_usuario(usuario: str, senha: str, perfil: str = "operador") -> bool:
 
 # ── Preferências por usuário ──────────────────────────────────────
 def salvar_preferencia_usuario(usuario: str, chave: str, valor: str):
-    """Salva preferência do usuário (ex: tema) no Supabase."""
     sb = get_client()
     try:
-        # Verifica se já existe
         res = sb.table("preferencias_usuario").select("id").eq(
             "usuario", usuario).eq("chave", chave).execute()
         if res.data:
@@ -74,12 +80,11 @@ def salvar_preferencia_usuario(usuario: str, chave: str, valor: str):
                 "usuario": usuario, "chave": chave, "valor": valor
             }).execute()
     except Exception:
-        pass  # Falha silenciosa
+        pass
 
 
 def get_preferencia_usuario(usuario: str, chave: str,
                               default: str = None) -> str | None:
-    """Busca preferência do usuário no Supabase."""
     sb = get_client()
     try:
         res = sb.table("preferencias_usuario").select("valor").eq(
@@ -165,7 +170,7 @@ def get_registros(data_ini=None, data_fim=None,
     for col in ["valor","quantidade","horimetro"]:
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0)
-    df["data"] = pd.to_datetime(df["data"], errors="coerce")
+    df = _formatar_datas(df)
     return df
 
 

@@ -18,7 +18,6 @@ def render():
     <hr style="border-color:{t['C_BORDER']};"/>
     """, unsafe_allow_html=True)
 
-    # ── Filtros ───────────────────────────────────────────────────
     c1,c2,c3,c4 = st.columns(4)
     placa_f   = c1.text_input("🔍 Placa / ID", placeholder="ex: ABC1234")
     produto_f = c2.text_input("Produto",        placeholder="ex: DIESEL")
@@ -36,9 +35,8 @@ def render():
         st.info("Nenhum registro encontrado."); return
 
     # ── Downloads ─────────────────────────────────────────────────
-    df_exp = df[["id","data","placa","produto","responsavel",
+    df_exp = df[["id","data_fmt","placa","produto","responsavel",
                  "valor","quantidade","horimetro","categoria"]].copy()
-    df_exp["data"] = df_exp["data"].astype(str)
     df_exp.columns = ["ID","Data","Placa","Produto","Condutor",
                       "Valor R$","Litros","Horímetro","Categoria"]
 
@@ -69,7 +67,7 @@ def render():
         with st.form("form_editar"):
             c1,c2,c3 = st.columns(3)
             nova_data  = c1.date_input("📅 Data",
-                value=pd.to_datetime(r["data"]).date() if r["data"] else datetime.now().date())
+                value=pd.to_datetime(r["data"]).date() if pd.notna(r["data"]) else datetime.now().date())
             nova_placa = c2.selectbox("🚛 Placa", lv,
                 index=lv.index(r["placa"]) if r["placa"] in lv else 0)
             nova_cat   = c3.selectbox("📁 Categoria",
@@ -120,7 +118,7 @@ def render():
         else:
             r = reg_del.iloc[0]
             st.warning(
-                f"**Excluindo:** #{del_id} | {r['data']} | "
+                f"**Excluindo:** #{del_id} | {r['data_fmt']} | "
                 f"{r['placa']} | {r['produto']} | R$ {r['valor']:.2f}")
             if db.excluir_registro(int(del_id)):
                 st.success(f"✅ Registro #{del_id} excluído!")
